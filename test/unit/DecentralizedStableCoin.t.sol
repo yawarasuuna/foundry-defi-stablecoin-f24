@@ -2,15 +2,15 @@
 pragma solidity ^0.8.18;
 
 import {console2, Test} from "forge-std/Test.sol";
-import {DecentralizedStableCoin} from "../src/DecentralizedStableCoin.sol";
-import {DeployDecentralizedStableCoin} from "../script/DeployDecentralizedStableCoin.s.sol";
+import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
+import {DeployDSC} from "../../script/DeployDSC.s.sol";
 
 contract DecentralizedStableCoinTest is Test {
-    DeployDecentralizedStableCoin deployer;
+    DeployDSC deployer;
     address MINTER = makeAddr("minter");
 
     function setUp() public {
-        deployer = new DeployDecentralizedStableCoin();
+        deployer = new DeployDSC();
     }
 
     function testMintWorks() external {}
