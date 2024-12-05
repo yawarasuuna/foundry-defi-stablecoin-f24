@@ -58,7 +58,7 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__FailedMint();
     error DSCEngine__FailedTransfer();
     error DSCEngine__NotImprovedHealthFactor();
-    error DSCEngine__OkHealthFactor();    
+    error DSCEngine__OkHealthFactor();
     error DSCEngine__ViolatedHealthFactor();
 
     /*//////////////////////////////////////////////////////////////
@@ -263,7 +263,7 @@ contract DSCEngine is ReentrancyGuard {
         _burnDSC(debtToCover, user, msg.sender);
 
         uint256 endingUserHealthFactor = _healthFactor(user);
-        if (endingUserHealthFactor <= startingUserHealthFactor){
+        if (endingUserHealthFactor <= startingUserHealthFactor) {
             revert DSCEngine__NotImprovedHealthFactor();
         }
         _revertIfHealthFactorIsViolated(msg.sender);
