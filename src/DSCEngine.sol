@@ -58,7 +58,7 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__FailedMint();
     error DSCEngine__FailedTransfer();
     error DSCEngine__NotImprovedHealthFactor();
-    error DSCEngine__OkHealthFactor();    
+    error DSCEngine__OkHealthFactor();
     error DSCEngine__ViolatedHealthFactor();
 
     /*//////////////////////////////////////////////////////////////
@@ -256,14 +256,13 @@ contract DSCEngine is ReentrancyGuard {
             revert DSCEngine__OkHealthFactor();
         }
         uint256 tokenAmountFromDebtCovered = getTokenAmountFromUSD(tokenCollateralAddress, debtToCover);
-        // TODO implement a feature to liquidate in the event the protocol is insolvent and sweep extra amounts into a treasury
         uint256 bonusCollateral = tokenAmountFromDebtCovered * LIQUIDATION_BONUS / LIQUIDATION_PRECISION;
         uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
         _redeemCollateral(tokenCollateralAddress, totalCollateralToRedeem, user, msg.sender);
         _burnDSC(debtToCover, user, msg.sender);
 
         uint256 endingUserHealthFactor = _healthFactor(user);
-        if (endingUserHealthFactor <= startingUserHealthFactor){
+        if (endingUserHealthFactor <= startingUserHealthFactor) {
             revert DSCEngine__NotImprovedHealthFactor();
         }
         _revertIfHealthFactorIsViolated(msg.sender);
@@ -355,5 +354,13 @@ contract DSCEngine is ReentrancyGuard {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeed[token]);
         (, int256 price,,,) = priceFeed.latestRoundData();
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
+    }
+
+    function getAccountInformation(address user)
+        external
+        view
+        returns (uint256 totalDSCMinted, uint256 collateralValueInUSD)
+    {
+        (totalDSCMinted, collateralValueInUSD) = _getAccountInformation(user);
     }
 }

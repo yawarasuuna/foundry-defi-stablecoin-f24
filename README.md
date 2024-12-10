@@ -1,6 +1,6 @@
 # Foundry DeFi Stablecoin
 
-Learning from Cyfrin Solidity Course. If you also want to learn, got to:
+Learning from Cyfrin Solidity Course. If you also want to learn, go to:
 
 *[⭐️ Updraft | DeFi Protocol](https://updraft.cyfrin.io/courses/advanced-foundry/develop-defi-protocol/defi-introduction)*
 
