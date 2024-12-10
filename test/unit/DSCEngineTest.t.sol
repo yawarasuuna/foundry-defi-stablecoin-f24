@@ -67,7 +67,6 @@ contract DSCEngineTest is Test {
         assertEq(expectedUSDValue, actualUSDValue);
     }
 
-
     /*//////////////////////////////////////////////////////////////
                         DEPOSITCOLLATERAL TESTS
     //////////////////////////////////////////////////////////////*/
@@ -121,7 +120,7 @@ contract DSCEngineTest is Test {
     // function testRevertsIfFailedTransfer() public {
     //     vm.expectRevert(DSCEngine.DSCEngine__FailedTransfer.selector);
     // }
-    
+
     /*//////////////////////////////////////////////////////////////
                  _REVERTIFHEALTHFACTORISVIOLATED TESTS
     //////////////////////////////////////////////////////////////*/
@@ -158,7 +157,7 @@ contract DSCEngineTest is Test {
     //     depositCollateral(tokenCollateralAddress, amountCollateral);
     //     mintDSC(amountDSCToMint);
     // }
-    
+
     // function testIfDepositAndMintWorks() public {
     //     vm.prank(USER);
     //     dscEngine.depositCollateralAndMintDSC(weth, 10, 1);
@@ -195,14 +194,13 @@ contract DSCEngineTest is Test {
                       REDEEMCOLLATERALFORDSC TESTS
     //////////////////////////////////////////////////////////////*/
 
-    
-//     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
-//         public
-//         moreThanZero(amountCollateral)
-//         nonReentrant
-//     {
+    //     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
+    //         public
+    //         moreThanZero(amountCollateral)
+    //         nonReentrant
+    //     {
 
-//         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
-//         _revertIfHealthFactorIsViolated(msg.sender);
-//     }
-// }
+    //         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
+    //         _revertIfHealthFactorIsViolated(msg.sender);
+    //     }
+}
