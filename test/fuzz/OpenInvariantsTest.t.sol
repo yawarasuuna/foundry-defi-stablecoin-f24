@@ -13,7 +13,7 @@ pragma solidity ^0.8.18;
 // good for sanity check
 // quickly write open test functions and minimal handler functions that arent perfect
 // con
-// hard to make sure all calls made are making sense 
+// hard to make sure all calls made are making sense
 
 import {console2, Test} from "forge-std/Test.sol";
 import {StdInvariant} from "forge-std/StdInvariant.sol";
@@ -38,7 +38,7 @@ contract OpenInvariantsTests is StdInvariant, Test {
         targetContract(address(dscE));
     }
 
-    function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {
+    function invariant_open_protocolMustHaveMoreValueThanTotalSupply() public view {
         uint256 totalSupply = dsc.totalSupply();
         uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dscE)); // total amount of weth deposited/set to contract dscE
         uint256 totalWbtcDeposited = IERC20(wbtc).balanceOf(address(dscE));
