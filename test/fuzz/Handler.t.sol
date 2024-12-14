@@ -17,6 +17,8 @@ contract Handler is Test {
     ERC20Mock weth;
     ERC20Mock wbtc;
 
+    uint256 MAX_DEPOSIT_SIZE = type(uint96).max; // if uint256.max, it would revert due to overflow of max uin256+1
+
     // these are the contracts we want the handler to handle calls to
     constructor(DSCEngine _dscEngine, DecentralizedStableCoin _dsc) {
         dscE = _dscEngine;
@@ -36,9 +38,28 @@ contract Handler is Test {
     //     }
 
     // Instead of depositing any collateral type, now we specify the type of collateral
-    function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) external {
+    function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
+        amountCollateral = bound(amountCollateral, 1, MAX_DEPOSIT_SIZE);
+
+        vm.startPrank(msg.sender);
+        collateral.mint(msg.sender, amountCollateral);
+        collateral.approve(address(dscE), amountCollateral);
         dscE.depositCollateral(address(collateral), amountCollateral);
+        vm.stopPrank();
+    }
+
+    function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
+        ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
+        uint256 maxAmountCollateralToRedeem = dscE.getCollateralBalanceOfUser(address(collateral), msg.sender);
+        amountCollateral = bound(amountCollateral, 0, maxAmountCollateralToRedeem);
+        if (amountCollateral == 0) {
+            // vm.assume // try it out
+            return; // and dont call function redeemCollateral
+        }
+
+        dscE.redeemCollateral(address(collateral), amountCollateral);
+        vm.stopPrank();
     }
 
     // Helper Functions

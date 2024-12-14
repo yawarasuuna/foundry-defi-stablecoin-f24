@@ -29,7 +29,7 @@ contract Invariants is StdInvariant, Test {
         targetContract(address(handler));
     }
 
-    function invariant_protocolMustHaveMoreValueThanTotalSupply() external view {
+    function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {
         uint256 totalDSCSupply = dsc.totalSupply();
         uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dscE));
         uint256 totalWbtcDeposited = IERC20(wbtc).balanceOf(address(dscE));
@@ -39,6 +39,4 @@ contract Invariants is StdInvariant, Test {
 
         assert(valueWeth + valueWbtc >= totalDSCSupply);
     }
-
-    // 12m15
 }
