@@ -5,9 +5,10 @@ import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensio
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MockFailedTransferFrom is ERC20Burnable, Ownable {
-    error DecentralizedStableCoin__AmountMustBeMoreThanZero();
-    error DecentralizedStableCoin__BurnAmountExceedsBalance();
-    error DecentralizedStableCoin__NotZeroAddress();
+    error DecentralizedStableCoin__CannotBurnZeroTokens();
+    error DecentralizedStableCoin__BalanceLowerThanBurnAmount();
+    error DecentralizedStableCoin__CannotMintToZeroAddress();
+    error DecentralizedStableCoin__CannotMintZero();
 
     /*
     In future versions of OpenZeppelin contracts package, Ownable must be declared with an address of the contract owner
@@ -22,24 +23,22 @@ contract MockFailedTransferFrom is ERC20Burnable, Ownable {
     function burn(uint256 _amount) public override onlyOwner {
         uint256 balance = balanceOf(msg.sender);
         if (_amount <= 0) {
-            revert DecentralizedStableCoin__AmountMustBeMoreThanZero();
+            revert DecentralizedStableCoin__CannotBurnZeroTokens();
         }
         if (balance < _amount) {
-            revert DecentralizedStableCoin__BurnAmountExceedsBalance();
+            revert DecentralizedStableCoin__BalanceLowerThanBurnAmount();
         }
         super.burn(_amount);
     }
 
-    function mint(address account, uint256 amount) public {
-        _mint(account, amount);
-    }
-
-    function transferFrom(address, /* sender */ address, /* recipient */ uint256 /* amount */ )
-        public
-        pure
-        override
-        returns (bool)
-    {
+    function mint(address _to, uint256 _amount) external onlyOwner returns (bool) {
+        if (_to == address(0)) {
+            revert DecentralizedStableCoin__CannotMintToZeroAddress();
+        }
+        if (_amount <= 0) {
+            revert DecentralizedStableCoin__CannotMintZero();
+        }
+        _mint(_to, _amount);
         return false;
     }
 }
