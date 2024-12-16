@@ -21,6 +21,7 @@ contract DSCEngineTest is Test {
 
     address public USER = makeAddr("user");
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
+    uint256 public constant AMOUNT_MINTED = 100 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
 
     event CollateralDeposited(address indexed user, address indexed tokenCollateral, uint256 indexed amountDeposited);
@@ -73,11 +74,13 @@ contract DSCEngineTest is Test {
     //////////////////////////////////////////////////////////////*/
 
     function testRevertsIfCollateralZero() public {
-        vm.prank(USER);
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dscE), AMOUNT_COLLATERAL);
 
         vm.expectRevert(DSCEngine.DSCEngine__MustBeGreaterThanZero.selector);
 
         dscE.depositCollateral(weth, 0);
+        vm.stopPrank();
     }
 
     function testRevertsIfNotAllowedCollateral() public {
@@ -88,7 +91,7 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
-    function testNonReentrantProtection() public {}
+    function testDepositCollateralIsNonReentrant() public {}
 
     modifier depositCollateral() {
         vm.startPrank(USER);
@@ -119,8 +122,10 @@ contract DSCEngineTest is Test {
     function testCollateralDepositEmitsEvent() public {
         vm.startPrank(USER);
         ERC20Mock(weth).approve(address(dscE), AMOUNT_COLLATERAL);
+
         vm.expectEmit(true, true, true, false, address(dscE));
         emit CollateralDeposited(USER, weth, AMOUNT_COLLATERAL);
+
         dscE.depositCollateral(weth, AMOUNT_COLLATERAL);
         vm.stopPrank();
     }
@@ -174,6 +179,30 @@ contract DSCEngineTest is Test {
     //         revert DSCEngine__FailedMint();
     //     }
     // }
+
+    function testRevertIfMintIsZero() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dscE), AMOUNT_COLLATERAL);
+
+        vm.expectRevert(DSCEngine.DSCEngine__MustBeGreaterThanZero.selector);
+
+        dscE.mintDSC(0);
+        vm.stopPrank();
+    }
+
+    function testMintDSCIsNonReentrant() public {}
+
+    function testMintRevertIfHealFactorIsViolated() public {}
+
+    function testRevertIfMintFails() public {}
+
+    function testCanMintDSC() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dscE), AMOUNT_COLLATERAL);
+        dscE.depositCollateral(weth, AMOUNT_COLLATERAL);
+        dscE.mintDSC(AMOUNT_MINTED);
+        vm.stopPrank();
+    }
 
     /*//////////////////////////////////////////////////////////////
                    DEPOSITCOLLATERALANDMINTDSC TESTS
