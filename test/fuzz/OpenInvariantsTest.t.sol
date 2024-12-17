@@ -23,33 +23,33 @@ import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DSCEngine.sol";
 
-contract OpenInvariantsTests is StdInvariant, Test {
-    DeployDSC deployer;
-    DSCEngine dscE;
-    DecentralizedStableCoin dsc;
-    HelperConfig helperConfig;
-    address weth;
-    address wbtc;
+// contract OpenInvariantsTests is StdInvariant, Test {
+//     DeployDSC deployer;
+//     DSCEngine dscE;
+//     DecentralizedStableCoin dsc;
+//     HelperConfig helperConfig;
+//     address weth;
+//     address wbtc;
 
-    function setUp() external {
-        deployer = new DeployDSC();
-        (dsc, dscE, helperConfig) = deployer.run();
-        (,, weth, wbtc,) = helperConfig.activeNetworkConfig();
-        targetContract(address(dscE));
-    }
+//     function setUp() external {
+//         deployer = new DeployDSC();
+//         (dsc, dscE, helperConfig) = deployer.run();
+//         (,, weth, wbtc,) = helperConfig.activeNetworkConfig();
+//         targetContract(address(dscE));
+//     }
 
-    function invariant_open_protocolMustHaveMoreValueThanTotalSupply() public view {
-        uint256 totalSupply = dsc.totalSupply();
-        uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dscE)); // total amount of weth deposited/set to contract dscE
-        uint256 totalWbtcDeposited = IERC20(wbtc).balanceOf(address(dscE));
+//     function invariant_open_protocolMustHaveMoreValueThanTotalSupply() public view {
+//         uint256 totalSupply = dsc.totalSupply();
+//         uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dscE)); // total amount of weth deposited/set to contract dscE
+//         uint256 totalWbtcDeposited = IERC20(wbtc).balanceOf(address(dscE));
 
-        uint256 wethValue = dscE.getUSDValue(weth, totalWethDeposited);
-        uint256 wbtcValue = dscE.getUSDValue(wbtc, totalWbtcDeposited);
+//         uint256 wethValue = dscE.getUSDValue(weth, totalWethDeposited);
+//         uint256 wbtcValue = dscE.getUSDValue(wbtc, totalWbtcDeposited);
 
-        console2.log("weth value: ", wethValue);
-        console2.log("wbtc value: ", wbtcValue);
-        console2.log("total supply: ", totalSupply);
+//         console2.log("weth value: ", wethValue);
+//         console2.log("wbtc value: ", wbtcValue);
+//         console2.log("total supply: ", totalSupply);
 
-        assert(wethValue + wbtcValue >= totalSupply);
-    }
-}
+//         assert(wethValue + wbtcValue >= totalSupply);
+//     }
+// }

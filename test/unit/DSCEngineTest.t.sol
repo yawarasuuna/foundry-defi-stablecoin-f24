@@ -3,10 +3,14 @@ pragma solidity ^0.8.18;
 
 import {console2, Test} from "forge-std/Test.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {MockFailedMint} from "../mocks/MockFailedMint.sol";
+import {MockFailedTransfer} from "../mocks/MockFailedTransfer.sol";
 import {MockFailedTransferFrom} from "../mocks/MockFailedTransferFrom.sol";
 
 contract DSCEngineTest is Test {
@@ -21,7 +25,7 @@ contract DSCEngineTest is Test {
 
     address public USER = makeAddr("user");
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
-    uint256 public constant AMOUNT_MINTED = 100 ether;
+    uint256 public constant AMOUNT_TO_MINT = 100 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
 
     event CollateralDeposited(address indexed user, address indexed tokenCollateral, uint256 indexed amountDeposited);
@@ -168,6 +172,24 @@ contract DSCEngineTest is Test {
     // }
 
     /*//////////////////////////////////////////////////////////////
+                   DEPOSITCOLLATERALANDMINTDSC TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    // function depositCollateralAndMintDSC(
+    //     address tokenCollateralAddress,
+    //     uint256 amountCollateral,
+    //     uint256 amountDSCToMint
+    // ) external {
+    //     depositCollateral(tokenCollateralAddress, amountCollateral);
+    //     mintDSC(amountDSCToMint);
+    // }
+
+    // function testIfDepositAndMintWorks() public {
+    //     vm.prank(USER);
+    //     dscEngine.depositCollateralAndMintDSC(weth, 10, 1);
+    // }
+
+    /*//////////////////////////////////////////////////////////////
                              MINTDSC TESTS
     //////////////////////////////////////////////////////////////*/
 
@@ -194,33 +216,36 @@ contract DSCEngineTest is Test {
 
     function testMintRevertIfHealFactorIsViolated() public {}
 
-    function testRevertIfMintFails() public {}
+    function testRevertIfMintFails() public {
+        address owner = msg.sender;
+        vm.prank(owner);
+
+        MockFailedMint mockDSC = new MockFailedMint();
+        ERC20Mock(address(mockDSC)).mint(USER, STARTING_ERC20_BALANCE);
+        tokenAddresses = [weth];
+        priceFeedAddresses = [ethUSDPriceFeed];
+
+        vm.prank(owner);
+        DSCEngine mockDSCE = new DSCEngine(tokenAddresses, priceFeedAddresses, address(mockDSC));
+        mockDSC.transferOwnership(address(mockDSCE));
+
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(mockDSCE), AMOUNT_COLLATERAL);
+
+        vm.expectRevert(DSCEngine.DSCEngine__FailedMint.selector);
+        // mockDSCE.depositCollateralAndMintDSC(weth, AMOUNT_COLLATERAL, AMOUNT_TO_MINT);
+        mockDSCE.depositCollateral(weth, AMOUNT_COLLATERAL);
+        mockDSCE.mintDSC(AMOUNT_TO_MINT);
+        vm.stopPrank();
+    }
 
     function testCanMintDSC() public {
         vm.startPrank(USER);
         ERC20Mock(weth).approve(address(dscE), AMOUNT_COLLATERAL);
         dscE.depositCollateral(weth, AMOUNT_COLLATERAL);
-        dscE.mintDSC(AMOUNT_MINTED);
+        dscE.mintDSC(AMOUNT_TO_MINT);
         vm.stopPrank();
     }
-
-    /*//////////////////////////////////////////////////////////////
-                   DEPOSITCOLLATERALANDMINTDSC TESTS
-    //////////////////////////////////////////////////////////////*/
-
-    // function depositCollateralAndMintDSC(
-    //     address tokenCollateralAddress,
-    //     uint256 amountCollateral,
-    //     uint256 amountDSCToMint
-    // ) external {
-    //     depositCollateral(tokenCollateralAddress, amountCollateral);
-    //     mintDSC(amountDSCToMint);
-    // }
-
-    // function testIfDepositAndMintWorks() public {
-    //     vm.prank(USER);
-    //     dscEngine.depositCollateralAndMintDSC(weth, 10, 1);
-    // }
 
     /*//////////////////////////////////////////////////////////////
                         _REDEEMCOLLATERAL TESTS
