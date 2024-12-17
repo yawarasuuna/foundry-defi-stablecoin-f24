@@ -1,6 +1,9 @@
 // handler narrows down the way we call functions, so we dont waste runs, like deposit collateral without approving the erc20
 // handles the way we make calls to the contract, without calling functions randomly and wasting runs
 
+// continueOnRevert: quicker looser test
+// failOnRevert: every single transaction you run on your invariant test, it will pass
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
@@ -27,6 +30,24 @@ contract Handler is Test {
         address[] memory collateralTokens = dscE.getCollateralTokens();
         weth = ERC20Mock(collateralTokens[0]);
         wbtc = ERC20Mock(collateralTokens[1]);
+    }
+
+    function mintDSC(uint256 amount) public {
+        // amount = bound(amount, 1, MAX_DEPOSIT_SIZE);
+
+        (uint256 totalDSCMinted, uint256 collateralValueInUSD) = dscE.getAccountInformation(msg.sender);
+
+        int256 maxDSCToMint = (int256(collateralValueInUSD) / 2) - int256(totalDSCMinted);
+        if (maxDSCToMint < 0) {
+            return;
+        }
+        amount = bound(amount, 0, uint256(maxDSCToMint));
+        if (amount == 0) {
+            return;
+        }
+        vm.startPrank(msg.sender);
+        dscE.mintDSC(amount);
+        vm.stopPrank();
     }
 
     // redeem collateral when you have collateral
