@@ -20,6 +20,9 @@ contract Handler is Test {
     ERC20Mock weth;
     ERC20Mock wbtc;
 
+    uint256 public timesMintIsCalled; // ghost variable
+    address[] public usersWithCollateralDeposited;
+
     uint256 MAX_DEPOSIT_SIZE = type(uint96).max; // if uint256.max, it would revert due to overflow of max uin256+1
 
     // these are the contracts we want the handler to handle calls to
@@ -32,10 +35,13 @@ contract Handler is Test {
         wbtc = ERC20Mock(collateralTokens[1]);
     }
 
-    function mintDSC(uint256 amount) public {
+    function mintDSC(uint256 amount, uint256 addressSeed) public {
         // amount = bound(amount, 1, MAX_DEPOSIT_SIZE);
-
-        (uint256 totalDSCMinted, uint256 collateralValueInUSD) = dscE.getAccountInformation(msg.sender);
+        if (usersWithCollateralDeposited.length == 0) {
+            return;
+        }
+        address sender = usersWithCollateralDeposited[addressSeed % usersWithCollateralDeposited.length];
+        (uint256 totalDSCMinted, uint256 collateralValueInUSD) = dscE.getAccountInformation(sender);
 
         int256 maxDSCToMint = (int256(collateralValueInUSD) / 2) - int256(totalDSCMinted);
         if (maxDSCToMint < 0) {
@@ -45,9 +51,10 @@ contract Handler is Test {
         if (amount == 0) {
             return;
         }
-        vm.startPrank(msg.sender);
+        vm.startPrank(sender);
         dscE.mintDSC(amount);
         vm.stopPrank();
+        timesMintIsCalled++;
     }
 
     // redeem collateral when you have collateral
@@ -68,6 +75,7 @@ contract Handler is Test {
         collateral.approve(address(dscE), amountCollateral);
         dscE.depositCollateral(address(collateral), amountCollateral);
         vm.stopPrank();
+        usersWithCollateralDeposited.push(msg.sender);
     }
 
     function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {

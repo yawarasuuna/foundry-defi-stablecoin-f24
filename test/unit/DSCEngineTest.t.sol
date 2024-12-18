@@ -184,10 +184,16 @@ contract DSCEngineTest is Test {
     //     mintDSC(amountDSCToMint);
     // }
 
-    // function testIfDepositAndMintWorks() public {
-    //     vm.prank(USER);
-    //     dscEngine.depositCollateralAndMintDSC(weth, 10, 1);
-    // }
+    function testCanDepositCollateralAndMint() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dscE), AMOUNT_COLLATERAL);
+
+        dscE.depositCollateralAndMintDSC(weth, AMOUNT_COLLATERAL, AMOUNT_TO_MINT);
+
+        uint256 mintedBalance = dsc.balanceOf(USER);
+
+        assertEq(mintedBalance, AMOUNT_TO_MINT);
+    }
 
     /*//////////////////////////////////////////////////////////////
                              MINTDSC TESTS
@@ -218,24 +224,25 @@ contract DSCEngineTest is Test {
 
     function testRevertIfMintFails() public {
         address owner = msg.sender;
-        vm.prank(owner);
+        vm.startPrank(owner);
 
         MockFailedMint mockDSC = new MockFailedMint();
         ERC20Mock(address(mockDSC)).mint(USER, STARTING_ERC20_BALANCE);
+
         tokenAddresses = [weth];
         priceFeedAddresses = [ethUSDPriceFeed];
 
-        vm.prank(owner);
         DSCEngine mockDSCE = new DSCEngine(tokenAddresses, priceFeedAddresses, address(mockDSC));
         mockDSC.transferOwnership(address(mockDSCE));
+        vm.stopPrank();
 
         vm.startPrank(USER);
         ERC20Mock(weth).approve(address(mockDSCE), AMOUNT_COLLATERAL);
 
         vm.expectRevert(DSCEngine.DSCEngine__FailedMint.selector);
-        // mockDSCE.depositCollateralAndMintDSC(weth, AMOUNT_COLLATERAL, AMOUNT_TO_MINT);
-        mockDSCE.depositCollateral(weth, AMOUNT_COLLATERAL);
-        mockDSCE.mintDSC(AMOUNT_TO_MINT);
+        mockDSCE.depositCollateralAndMintDSC(weth, AMOUNT_COLLATERAL, AMOUNT_TO_MINT);
+        // mockDSCE.depositCollateral(weth, AMOUNT_COLLATERAL);
+        // mockDSCE.mintDSC(AMOUNT_TO_MINT);
         vm.stopPrank();
     }
 
