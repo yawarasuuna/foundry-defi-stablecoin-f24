@@ -12,6 +12,7 @@ import {console2, Test} from "forge-std/Test.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DSCEngine.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 
 contract Handler is Test {
     DSCEngine dscE;
@@ -22,6 +23,7 @@ contract Handler is Test {
 
     uint256 public timesMintIsCalled; // ghost variable
     address[] public usersWithCollateralDeposited;
+    MockV3Aggregator public ethUSDPriceFeed;
 
     uint256 MAX_DEPOSIT_SIZE = type(uint96).max; // if uint256.max, it would revert due to overflow of max uin256+1
 
@@ -33,6 +35,8 @@ contract Handler is Test {
         address[] memory collateralTokens = dscE.getCollateralTokens();
         weth = ERC20Mock(collateralTokens[0]);
         wbtc = ERC20Mock(collateralTokens[1]);
+
+        ethUSDPriceFeed = MockV3Aggregator(dscE.getCollateralTokenPriceFeed(address(weth)));
     }
 
     function mintDSC(uint256 amount, uint256 addressSeed) public {
@@ -56,6 +60,12 @@ contract Handler is Test {
         vm.stopPrank();
         timesMintIsCalled++;
     }
+
+    // to do , randomize collateral, currently breaks invariant test suite:
+    // function updateCollateralPrice(uint96 newPrice) public {
+    //     int256 newPriceInt = int256(uint256(newPrice)); // priceFeeds take int256
+    //     ethUSDPriceFeed.updateAnswer(newPriceInt);
+    // }
 
     // redeem collateral when you have collateral
 

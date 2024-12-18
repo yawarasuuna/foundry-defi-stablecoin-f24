@@ -12,6 +12,7 @@ import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {MockFailedMint} from "../mocks/MockFailedMint.sol";
 import {MockFailedTransfer} from "../mocks/MockFailedTransfer.sol";
 import {MockFailedTransferFrom} from "../mocks/MockFailedTransferFrom.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 
 contract DSCEngineTest is Test {
     DeployDSC deployer;
@@ -40,7 +41,7 @@ contract DSCEngineTest is Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                           CONSTRUCTOR TESTS
+                           Constructor Tests
     //////////////////////////////////////////////////////////////*/
 
     address[] public tokenAddresses;
@@ -56,7 +57,7 @@ contract DSCEngineTest is Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                              PRICE TESTS
+                              Price Tests
     //////////////////////////////////////////////////////////////*/
 
     function testGetTokenAmountFromUSD() public view {
@@ -74,7 +75,7 @@ contract DSCEngineTest is Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                        DEPOSITCOLLATERAL TESTS
+                        depositCollateral Tests
     //////////////////////////////////////////////////////////////*/
 
     function testRevertsIfCollateralZero() public {
@@ -161,7 +162,36 @@ contract DSCEngineTest is Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                 _REVERTIFHEALTHFACTORISVIOLATED TESTS
+                          _healthFactor Tests
+    //////////////////////////////////////////////////////////////*/
+
+    modifier depositCollateralAndMintDSC() {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dscE), AMOUNT_COLLATERAL);
+        dscE.depositCollateralAndMintDSC(weth, AMOUNT_COLLATERAL, AMOUNT_TO_MINT);
+        vm.stopPrank();
+        _;
+    }
+
+    function testProperlyReportsHealthFactor() public depositCollateralAndMintDSC {
+        uint256 expectedHealthFactor = 200 ether;
+        uint256 actualHealthFactor = dscE.getHealthFactor(USER);
+
+        assertEq(expectedHealthFactor, actualHealthFactor);
+    }
+
+    function testHealthFactorCanGoBelowOne() public depositCollateralAndMintDSC {
+        int256 ethUSDBelowThresholdPrice = 1e8;
+
+        MockV3Aggregator(ethUSDPriceFeed).updateAnswer(ethUSDBelowThresholdPrice);
+        uint256 actualHealthFactor = dscE.getHealthFactor(USER);
+
+        console2.log("actualHealthFactor: ", actualHealthFactor);
+        assert(actualHealthFactor <= 1e18);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                 _revertIfHealthFactorIsViolated Tests
     //////////////////////////////////////////////////////////////*/
 
     //     function _revertIfHealthFactorIsViolated(address user) internal view {
@@ -171,8 +201,16 @@ contract DSCEngineTest is Test {
     //     }
     // }
 
+    function testHealthFactorRevertsWhenViolated() public {
+        // vm.startPrank(USER);
+
+        // vm.expectRevert(DSCEngine.DSCEngine__ViolatedHealthFactor.selector);
+
+        // vm.stopPrank();
+    }
+
     /*//////////////////////////////////////////////////////////////
-                   DEPOSITCOLLATERALANDMINTDSC TESTS
+                   depositCollateralAndMintDSC Tests
     //////////////////////////////////////////////////////////////*/
 
     // function depositCollateralAndMintDSC(
@@ -196,17 +234,8 @@ contract DSCEngineTest is Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                             MINTDSC TESTS
+                             mintDSC Tests
     //////////////////////////////////////////////////////////////*/
-
-    //     function mintDSC(uint256 amountDSCToMint) public moreThanZero(amountDSCToMint) nonReentrant {
-    //     s_mintedDSC[msg.sender] += amountDSCToMint;
-    //     _revertIfHealthFactorIsViolated(msg.sender);
-    //     bool minted = i_dsc.mint(msg.sender, amountDSCToMint);
-    //     if (!minted) {
-    //         revert DSCEngine__FailedMint();
-    //     }
-    // }
 
     function testRevertIfMintIsZero() public {
         vm.startPrank(USER);
@@ -220,7 +249,19 @@ contract DSCEngineTest is Test {
 
     function testMintDSCIsNonReentrant() public {}
 
-    function testMintRevertIfHealFactorIsViolated() public {}
+    //     function mintDSC(uint256 amountDSCToMint) public moreThanZero(amountDSCToMint) nonReentrant {
+    //     s_mintedDSC[msg.sender] += amountDSCToMint;
+    //     _revertIfHealthFactorIsViolated(msg.sender);
+    //     bool minted = i_dsc.mint(msg.sender, amountDSCToMint);
+    //     if (!minted) {
+    //         revert DSCEngine__FailedMint();
+    //     }
+    // }
+    function testMintRevertIfHealFactorIsViolated() public {
+        vm.startPrank(USER);
+
+        vm.stopPrank();
+    }
 
     function testRevertIfMintFails() public {
         address owner = msg.sender;
@@ -255,7 +296,7 @@ contract DSCEngineTest is Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                        _REDEEMCOLLATERAL TESTS
+                 _revertIfHealthFactorIsViolated Tests
     //////////////////////////////////////////////////////////////*/
 
     //     function _redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, address from, address to)
@@ -271,7 +312,7 @@ contract DSCEngineTest is Test {
     // }
 
     /*//////////////////////////////////////////////////////////////
-                 _REVERTIFHEALTHFACTORISVIOLATED TESTS
+                 _revertIfHealthFactorIsViolated Tests
     //////////////////////////////////////////////////////////////*/
 
     //     function _revertIfHealthFactorIsViolated(address user) internal view {
@@ -282,7 +323,7 @@ contract DSCEngineTest is Test {
     // }
 
     /*//////////////////////////////////////////////////////////////
-                      REDEEMCOLLATERALFORDSC TESTS
+                         redeemCollateral Tests
     //////////////////////////////////////////////////////////////*/
 
     //     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
