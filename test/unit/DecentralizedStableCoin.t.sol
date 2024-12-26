@@ -25,9 +25,9 @@ contract DecentralizedStableCoinTest is Test {
     }
 
     function testOwnership() public view {
+        console2.log("Actual DSC Owner:     ", dsc.owner());
         console2.log("Local owner variable: ", owner);
-        console2.log("Actual DSC Owner: ", dsc.owner());
-        console2.log("Test contract address", address(this));
+        console2.log("Test contract addr:   ", address(this));
     }
 
     //     function mint(address _to, uint256 _amount) external onlyOwner returns (bool) {
